@@ -20,6 +20,7 @@ from tqdm import tqdm
 import re
 import dotenv
 import os
+import inline
 
 
 DEFAULT_BLOCK_SIZE = 500
@@ -87,7 +88,7 @@ def safe_write(obj, name):
 
 def update_from_scrapbox_json(
     out_index,
-    jsonfile,
+    #jsonfile,
     cache_index=None,
     dry_run=False,
     is_public=False,
@@ -119,16 +120,18 @@ def update_from_scrapbox_json(
     if cache_index is not None:
         cache = VectorStore(cache_index, create_if_not_exist=False).cache
     vs = VectorStore(out_index)
-    data = json.load(open(jsonfile, encoding="utf8"))
+    #data = json.load(open(jsonfile, encoding="utf8"))
 
-    pages = data["pages"]
+    #pages = data["pages"]
+    pages = inline.get_pages()
     if PAGE_LIMIT > 0:
         pages = pages[:PAGE_LIMIT]
     print("processing {} pages".format(len(pages)))
     for p in tqdm(pages):
         buf = []
-        title = p["title"]
-        for line in p["lines"]:
+        title = p
+        lines = inline.get_page(p).split("\n")
+        for line in lines:
             buf.append(line)
             body = clean(" ".join(buf))
             if get_size(body) > block_size:
@@ -202,6 +205,20 @@ class VectorStore:
         buf.sort(reverse=True)
         return buf
 
+    def get_sorted_from_page(self, query):
+        buf = []
+        target = None
+        for body, (v, payload) in tqdm(self.cache.items()):
+            if payload["title"] == query:
+                target = np.array(v)
+                break
+        for body, (v, payload) in tqdm(self.cache.items()):
+            buf.append((target.dot(v), body, payload["title"]))
+            #buf.append((target.dot(v)/(np.linalg.norm(target)*np.linalg.norm(v)), body, title))
+        buf.sort(reverse=True)
+        return buf
+
+
     def batch(self, api_tasks, cache=None):
         if cache is None:
             cache = self.cache
@@ -264,6 +281,6 @@ if __name__ == "__main__":
     PAGE_LIMIT = 0  # 0 means no limit
     update_from_scrapbox_json(
         f"{PROJECT}.pickle",
-        f"{PROJECT}.json",
+        #f"{PROJECT}.json",
         is_public=True,
     )
