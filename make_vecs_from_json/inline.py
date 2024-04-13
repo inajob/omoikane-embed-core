@@ -1,13 +1,14 @@
 import requests
 from urllib.parse import quote
 
-base = "https://inline.inajob.tk/page/twitter-5643382/"
+base = "https://inline.inajob.freeddns.org/page/twitter-5643382/"
 def get_page(title):
     response = requests.get(base + quote(title))
     if response.status_code == 200:
         json_data = response.json()
         body = json_data["body"]
-        return body
+        lastUpdate = int(json_data["meta"].get("lastUpdate", str(1577836800)))
+        return body, lastUpdate
     else:
         pass
         #print("APIリクエストに失敗しました。")

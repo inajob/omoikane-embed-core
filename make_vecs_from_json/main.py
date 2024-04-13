@@ -130,7 +130,7 @@ def update_from_scrapbox_json(
     for p in tqdm(pages):
         buf = []
         title = p
-        lines = inline.get_page(p).split("\n")
+        lines = inline.get_page(p)[0].split("\n")
         for line in lines:
             buf.append(line)
             body = clean(" ".join(buf))
