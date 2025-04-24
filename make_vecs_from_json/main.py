@@ -128,13 +128,24 @@ def update_from_scrapbox_json(
         pages = pages[:PAGE_LIMIT]
     print("processing {} pages".format(len(pages)))
     for p in tqdm(pages):
-        buf = []
-        title = p
-        lines = inline.get_page(p)[0].split("\n")
-        for line in lines:
-            buf.append(line)
+        try:
+            buf = []
+            title = p
+            lines = inline.get_page(p)[0].split("\n")
+            for line in lines:
+                buf.append(line)
+                body = clean(" ".join(buf))
+                if get_size(body) > block_size:
+                    payload = {
+                        "title": title,
+                        "project": PROJECT,
+                        "text": "\n".join(buf),
+                        "is_public": is_public,
+                    }
+                    add(body, payload)
+                    buf = buf[len(buf) // 2 :]
             body = clean(" ".join(buf))
-            if get_size(body) > block_size:
+            if body:
                 payload = {
                     "title": title,
                     "project": PROJECT,
@@ -142,16 +153,9 @@ def update_from_scrapbox_json(
                     "is_public": is_public,
                 }
                 add(body, payload)
-                buf = buf[len(buf) // 2 :]
-        body = clean(" ".join(buf))
-        if body:
-            payload = {
-                "title": title,
-                "project": PROJECT,
-                "text": "\n".join(buf),
-                "is_public": is_public,
-            }
-            add(body, payload)
+        except Exception as e:
+            print(e)
+            print(p)
     if dry_run:
         cost = tokens * 0.0001 / 1000  # $0.0001 / 1K tokens
         print("tokens:", tokens, f"cost: {cost:.2f} USD")
