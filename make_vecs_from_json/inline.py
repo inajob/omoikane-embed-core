@@ -1,7 +1,7 @@
 import requests
 from urllib.parse import quote
 
-base = "https://inline.inajob.freeddns.org/page/twitter-5643382/"
+base = "https://inline.inajob.freeddns.org/page/twitter-5643382"
 def get_page(title):
     response = requests.get(base + quote(title))
     if response.status_code == 200:
@@ -21,5 +21,7 @@ def get_pages():
         json_data = response.json()
         keywords = json_data["keywords"]
         return keywords
-
+    else:
+        print("error", response)
+        print(response.text)
 
