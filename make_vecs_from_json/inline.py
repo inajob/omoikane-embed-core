@@ -3,7 +3,7 @@ from urllib.parse import quote
 
 base = "https://inline.inajob.freeddns.org/page/twitter-5643382"
 def get_page(title):
-    response = requests.get(base + quote(title))
+    response = requests.get(base + "/" + quote(title))
     if response.status_code == 200:
         json_data = response.json()
         body = json_data["body"]
